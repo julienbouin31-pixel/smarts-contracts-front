@@ -24,7 +24,7 @@ const cloreVainqueur = ref(1);
 let monContrat = null;
 let web3 = null;
 
-const contractAddress = "0xf571C1844d8D78aB5935DaEcED269b1718A09305";
+const contractAddress = "0xeA8144Cdeb0Db4757cFf6845468B50A4e4297d22";
 const contractABI = [
   { inputs: [], stateMutability: "nonpayable", type: "constructor" },
   { inputs: [], name: "admin", outputs: [{ internalType: "address", name: "", type: "address" }], stateMutability: "view", type: "function" },
