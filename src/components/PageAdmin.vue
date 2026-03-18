@@ -5,22 +5,27 @@
       <span class="badge-admin">Admin</span>
     </div>
 
+    <!-- Commissions -->
+    <div class="card card-commissions">
+      <div class="section-title">Commissions totales</div>
+      <div class="commission-value">{{ totalCommissions.toFixed(4) }} ETH</div>
+      <div class="commission-detail">10% sur {{ matchsClos.length }} match{{ matchsClos.length > 1 ? 's' : '' }} clos</div>
+    </div>
+
     <!-- Créer un match -->
     <div class="card">
       <div class="section-title">Créer un match</div>
       <div class="row">
-        <input v-model="newMatchDesc" placeholder="Ex : France vs Espagne" class="inp-wide" />
+        <select v-model="newMatchCategorie" class="sel">
+          <option>Football</option>
+          <option>Tennis</option>
+          <option>Basketball</option>
+          <option>Rugby</option>
+          <option>Baseball</option>
+        </select>
+        <input v-model="newMatchDomicile" placeholder="Équipe domicile" class="inp-wide" />
+        <input v-model="newMatchExterieur" placeholder="Équipe extérieur" class="inp-wide" />
         <button class="btn" @click="creerMatch" :disabled="txPending">Créer</button>
-      </div>
-    </div>
-
-    <!-- Donner des points -->
-    <div class="card">
-      <div class="section-title">Donner des points</div>
-      <div class="row">
-        <input v-model="adminAddr" placeholder="Adresse 0x…" class="inp-wide" />
-        <input v-model.number="adminMontant" type="number" min="1" placeholder="Montant" class="inp-sm" />
-        <button class="btn" @click="ajouterPoints" :disabled="txPending">Donner</button>
       </div>
     </div>
 
@@ -31,12 +36,12 @@
       <div v-else class="row">
         <select v-model="cloreMatchId" class="sel">
           <option v-for="m in matchsOuverts" :key="m.idx" :value="m.idx">
-            #{{ m.idx }} — {{ m.description }}
+            #{{ m.idx }} — {{ m.equipeDomicile }} vs {{ m.equipeExterieur }}
           </option>
         </select>
         <select v-model="cloreVainqueur" class="sel">
-          <option :value="1">Équipe A gagne</option>
-          <option :value="2">Équipe B gagne</option>
+          <option :value="1">{{ matchsOuverts.find(m => m.idx === cloreMatchId)?.equipeDomicile ?? 'Domicile' }} gagne</option>
+          <option :value="2">{{ matchsOuverts.find(m => m.idx === cloreMatchId)?.equipeExterieur ?? 'Extérieur' }} gagne</option>
         </select>
         <button class="btn btn-danger" @click="cloreMatch" :disabled="txPending">Clore</button>
       </div>
@@ -45,13 +50,17 @@
 </template>
 
 <script setup>
+import { computed } from 'vue';
 import { useContract } from '../composables/useContract.js';
 
 const {
-  newMatchDesc, adminAddr, adminMontant, cloreMatchId, cloreVainqueur,
+  matchs, newMatchDomicile, newMatchExterieur, newMatchCategorie, cloreMatchId, cloreVainqueur,
   matchsOuverts, txPending,
-  creerMatch, ajouterPoints, cloreMatch,
+  creerMatch, cloreMatch,
 } = useContract();
+
+const matchsClos        = computed(() => matchs.value.filter(m => m.estClos));
+const totalCommissions  = computed(() => matchsClos.value.reduce((s, m) => s + (m.totalMiseA + m.totalMiseB) * 0.1, 0));
 </script>
 
 <style scoped>
@@ -62,11 +71,7 @@ const {
   margin-bottom: 24px;
 }
 
-h2 {
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #111;
-}
+h2 { font-size: 1.2rem; font-weight: 700; color: #111; }
 
 .badge-admin {
   background: #fef2f2;
@@ -94,14 +99,9 @@ h2 {
   margin-bottom: 12px;
 }
 
-.row {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-wrap: wrap;
-}
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
 
-.sel, .inp-wide, .inp-sm {
+.sel, .inp-wide {
   background: #f5f6f8;
   border: 1px solid #ddd;
   color: #111;
@@ -111,8 +111,7 @@ h2 {
   outline: none;
 }
 
-.inp-wide { flex: 1; min-width: 160px; }
-.inp-sm   { width: 100px; }
+.inp-wide { flex: 1; min-width: 140px; }
 
 .btn {
   background: #eff6ff;
@@ -129,16 +128,25 @@ h2 {
 .btn:hover:not(:disabled) { background: #dbeafe; }
 .btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-.btn-danger {
-  background: #fef2f2;
-  color: #dc2626;
-  border-color: #fecaca;
-}
-
+.btn-danger { background: #fef2f2; color: #dc2626; border-color: #fecaca; }
 .btn-danger:hover:not(:disabled) { background: #fee2e2; }
 
-.empty {
-  color: #999;
-  font-size: 0.88rem;
+.empty { color: #999; font-size: 0.88rem; }
+
+.card-commissions {
+  border-color: #bfdbfe;
+  background: #eff6ff;
+}
+
+.commission-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #2563eb;
+  margin-bottom: 4px;
+}
+
+.commission-detail {
+  font-size: 0.8rem;
+  color: #60a5fa;
 }
 </style>

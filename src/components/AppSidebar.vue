@@ -19,11 +19,10 @@
         <div class="wallet-dot"></div>
         <div>
           <div class="addr">{{ shortAddr }}</div>
-          <div class="bal">{{ points }} pts</div>
-          <div class="eth">{{ ethBalance }} ETH</div>
+          <div class="bal">{{ ethBalance }} ETH</div>
         </div>
       </div>
-      <button class="btn-refresh" @click="$emit('refresh')" :disabled="loading" :title="loading ? 'Chargement…' : 'Actualiser'">
+      <button class="btn-refresh" @click="$emit('refresh')" :disabled="loading" title="Actualiser">
         <span :class="{ spin: loading }">↻</span>
       </button>
     </div>
@@ -31,7 +30,7 @@
 </template>
 
 <script setup>
-defineProps(['page', 'isAdmin', 'shortAddr', 'points', 'ethBalance', 'loading']);
+defineProps(['page', 'isAdmin', 'shortAddr', 'ethBalance', 'loading']);
 defineEmits(['update:page', 'refresh']);
 </script>
 
@@ -79,16 +78,8 @@ nav {
   cursor: pointer;
 }
 
-.nav-item:hover {
-  background: #f0f2f5;
-  color: #111;
-}
-
-.nav-item.active {
-  background: #eff6ff;
-  color: #2563eb;
-  font-weight: 600;
-}
+.nav-item:hover { background: #f0f2f5; color: #111; }
+.nav-item.active { background: #eff6ff; color: #2563eb; font-weight: 600; }
 
 .footer {
   display: flex;
@@ -100,11 +91,7 @@ nav {
   margin-top: 12px;
 }
 
-.wallet {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
+.wallet { display: flex; align-items: center; gap: 8px; }
 
 .wallet-dot {
   width: 8px;
@@ -114,22 +101,8 @@ nav {
   flex-shrink: 0;
 }
 
-.addr {
-  font-size: 0.7rem;
-  color: #888;
-  font-family: monospace;
-}
-
-.bal {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #111;
-}
-
-.eth {
-  font-size: 0.72rem;
-  color: #888;
-}
+.addr { font-size: 0.7rem; color: #888; font-family: monospace; }
+.bal  { font-size: 0.85rem; font-weight: 700; color: #111; }
 
 .btn-refresh {
   background: transparent;
@@ -141,16 +114,8 @@ nav {
   padding: 2px;
 }
 
-.btn-refresh:hover:not(:disabled) {
-  color: #555;
-}
+.btn-refresh:hover:not(:disabled) { color: #555; }
 
-.spin {
-  display: inline-block;
-  animation: spin 0.7s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
+.spin { display: inline-block; animation: spin 0.7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
 </style>

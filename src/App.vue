@@ -7,7 +7,6 @@
         v-model:page="page"
         :isAdmin="isAdmin"
         :shortAddr="shortAddr"
-        :points="points"
         :ethBalance="ethBalance"
         :loading="loading"
         @refresh="fetchAll"
@@ -31,7 +30,7 @@ import PageMatchs    from './components/PageMatchs.vue';
 import PageMesParis  from './components/PageMesParis.vue';
 import PageAdmin     from './components/PageAdmin.vue';
 
-const { account, points, ethBalance, loading, page, isAdmin, shortAddr, initWallet, connectWallet, fetchAll } = useContract();
+const { account, ethBalance, loading, page, isAdmin, shortAddr, initWallet, connectWallet, fetchAll } = useContract();
 
 onMounted(() => {
   initWallet();

@@ -1,56 +1,59 @@
 <template>
   <div class="card">
     <div class="card-head">
-      <span class="card-title">{{ match.description }}</span>
+      <div class="card-title-group">
+        <span class="cat-badge">{{ catIcon }} {{ match.categorie }}</span>
+        <span class="card-title">{{ match.equipeDomicile }} vs {{ match.equipeExterieur }}</span>
+      </div>
       <span :class="['pill', match.estClos ? 'pill-closed' : 'pill-open']">
         {{ statusLabel }}
       </span>
     </div>
 
-    <!-- Équipes -->
     <div class="teams">
       <div class="team">
-        <span class="team-label">Équipe A</span>
-        <span class="team-pts">{{ match.totalMiseA }} pts</span>
+        <span class="team-label">{{ match.equipeDomicile }}</span>
+        <span class="team-pts">{{ match.totalMiseA.toFixed(4) }} ETH</span>
       </div>
       <div class="team-vs">vs</div>
       <div class="team">
-        <span class="team-label">Équipe B</span>
-        <span class="team-pts">{{ match.totalMiseB }} pts</span>
+        <span class="team-label">{{ match.equipeExterieur }}</span>
+        <span class="team-pts">{{ match.totalMiseB.toFixed(4) }} ETH</span>
       </div>
     </div>
 
-    <!-- Barre de ratio -->
     <div class="ratio-bar">
-      <div class="ratio-fill" :style="{ width: pct + '%' }"></div>
+      <div class="ratio-a" :style="{ width: pct + '%' }"></div>
+      <div class="ratio-b" :style="{ width: (100 - pct) + '%' }"></div>
     </div>
     <div class="ratio-labels">
-      <span>A {{ pct }}%</span>
-      <span>B {{ 100 - pct }}%</span>
+      <span class="label-a">{{ match.equipeDomicile }} {{ pct }}%</span>
+      <span class="label-b">{{ match.equipeExterieur }} {{ 100 - pct }}%</span>
     </div>
 
-    <!-- Déjà parié -->
     <div v-if="mise > 0" class="already-bet">
-      Misé <strong>{{ mise }} pts</strong> sur équipe <strong>{{ userChoix === 1 ? 'A' : 'B' }}</strong>
+      Misé <strong>{{ mise.toFixed(4) }} ETH</strong> sur <strong>{{ userChoix === 1 ? match.equipeDomicile : match.equipeExterieur }}</strong>
     </div>
 
-    <!-- Formulaire pari -->
     <div v-else-if="!match.estClos" class="bet-row">
       <select v-model="localChoix" class="sel">
-        <option :value="1">Équipe A</option>
-        <option :value="2">Équipe B</option>
+        <option :value="1">{{ match.equipeDomicile }}</option>
+        <option :value="2">{{ match.equipeExterieur }}</option>
       </select>
-      <input v-model.number="localMontant" type="number" min="1" placeholder="Pts" class="inp" />
+      <input v-model.number="localMontant" type="number" min="0.001" step="0.001" placeholder="ETH" class="inp" />
       <button class="btn-bet" @click="$emit('parier', localChoix, localMontant)" :disabled="txPending">
         {{ txPending ? '…' : 'Parier' }}
       </button>
     </div>
 
-    <!-- Retirer gains / Perdu -->
     <template v-if="match.estClos && mise > 0">
-      <button v-if="userChoix === match.vainqueur" class="btn-gain" @click="$emit('retirer')" :disabled="txPending">
-        Retirer mes gains
-      </button>
+      <div v-if="userChoix === match.vainqueur && miseActuelle > 0" class="gain-row">
+        <span class="gain-label">Gains : <strong>{{ gain.toFixed(4) }} ETH</strong></span>
+        <button class="btn-gain" @click="$emit('retirer')" :disabled="txPending">
+          Retirer mes gains
+        </button>
+      </div>
+      <div v-else-if="userChoix === match.vainqueur && miseActuelle === 0" class="withdrawn">Gains retirés</div>
       <div v-else class="lost">Pari perdu</div>
     </template>
   </div>
@@ -59,20 +62,29 @@
 <script setup>
 import { ref, computed } from 'vue';
 
-const props = defineProps(['match', 'mise', 'userChoix', 'txPending', 'initChoix', 'initMontant']);
+const props = defineProps(['match', 'mise', 'miseActuelle', 'userChoix', 'txPending', 'initChoix', 'initMontant']);
 defineEmits(['parier', 'retirer']);
 
 const localChoix   = ref(props.initChoix ?? 1);
-const localMontant = ref(props.initMontant ?? 10);
+const localMontant = ref(props.initMontant ?? 0.01);
+
+const ICONS = { Football: '⚽', Tennis: '🎾', Basketball: '🏀', Rugby: '🏉', Baseball: '⚾' };
+const catIcon = computed(() => ICONS[props.match.categorie] ?? '🎮');
 
 const pct = computed(() => {
   const t = props.match.totalMiseA + props.match.totalMiseB;
   return t === 0 ? 50 : Math.round(props.match.totalMiseA / t * 100);
 });
 
+const gain = computed(() => {
+  const pot = props.match.totalMiseA + props.match.totalMiseB;
+  const gagnants = props.match.vainqueur === 1 ? props.match.totalMiseA : props.match.totalMiseB;
+  return gagnants > 0 ? ((props.mise * pot) / gagnants) * 0.9 : 0;
+});
+
 const statusLabel = computed(() => {
   if (!props.match.estClos) return 'Ouvert';
-  return props.match.vainqueur === 1 ? 'A gagne' : 'B gagne';
+  return (props.match.vainqueur === 1 ? props.match.equipeDomicile : props.match.equipeExterieur) + ' gagne';
 });
 </script>
 
@@ -93,11 +105,9 @@ const statusLabel = computed(() => {
   gap: 10px;
 }
 
-.card-title {
-  font-weight: 600;
-  font-size: 0.95rem;
-  color: #111;
-}
+.card-title-group { display: flex; flex-direction: column; gap: 3px; }
+.card-title { font-weight: 600; font-size: 0.95rem; color: #111; }
+.cat-badge  { font-size: 0.72rem; color: #888; }
 
 .pill {
   font-size: 0.72rem;
@@ -127,34 +137,27 @@ const statusLabel = computed(() => {
   align-items: center;
 }
 
-.team-label {
-  font-size: 0.8rem;
-  color: #666;
-}
-
-.team-pts {
-  font-weight: 700;
-  font-size: 0.9rem;
-  color: #111;
-}
-
-.team-vs {
-  font-size: 0.75rem;
-  color: #bbb;
-}
+.team-label { font-size: 0.8rem; color: #666; }
+.team-pts   { font-weight: 700; font-size: 0.9rem; color: #111; }
+.team-vs    { font-size: 0.75rem; color: #bbb; }
 
 .ratio-bar {
-  height: 4px;
-  background: #e9eaec;
+  height: 6px;
+  display: flex;
   border-radius: 99px;
   overflow: hidden;
   margin-bottom: 4px;
 }
 
-.ratio-fill {
+.ratio-a {
   height: 100%;
   background: #2563eb;
-  border-radius: 99px;
+  transition: width 0.3s;
+}
+
+.ratio-b {
+  height: 100%;
+  background: #f87171;
   transition: width 0.3s;
 }
 
@@ -162,9 +165,11 @@ const statusLabel = computed(() => {
   display: flex;
   justify-content: space-between;
   font-size: 0.72rem;
-  color: #999;
   margin-bottom: 12px;
 }
+
+.label-a { color: #2563eb; font-weight: 600; }
+.label-b { color: #f87171; font-weight: 600; }
 
 .already-bet {
   background: #f0fdf4;
@@ -192,7 +197,7 @@ const statusLabel = computed(() => {
   outline: none;
 }
 
-.inp { width: 80px; }
+.inp { width: 90px; }
 
 .btn-bet {
   background: #2563eb;
@@ -208,24 +213,38 @@ const statusLabel = computed(() => {
 .btn-bet:hover:not(:disabled) { background: #1d4ed8; }
 .btn-bet:disabled { opacity: 0.4; cursor: not-allowed; }
 
-.btn-gain {
+.gain-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   background: #f0fdf4;
-  color: #16a34a;
   border: 1px solid #86efac;
+  border-radius: 7px;
+  padding: 8px 12px;
+  margin-top: 8px;
+  gap: 12px;
+}
+
+.gain-label {
+  font-size: 0.88rem;
+  color: #15803d;
+}
+
+.btn-gain {
+  background: #16a34a;
+  color: #fff;
+  border: none;
   border-radius: 6px;
-  padding: 7px 16px;
+  padding: 7px 14px;
   font-weight: 600;
   font-size: 0.85rem;
   cursor: pointer;
-  margin-top: 8px;
+  white-space: nowrap;
 }
 
 .btn-gain:hover:not(:disabled) { background: #dcfce7; }
 .btn-gain:disabled { opacity: 0.4; cursor: not-allowed; }
 
-.lost {
-  color: #dc2626;
-  font-size: 0.85rem;
-  margin-top: 8px;
-}
+.lost      { color: #dc2626; font-size: 0.85rem; margin-top: 8px; }
+.withdrawn { color: #888; font-size: 0.85rem; margin-top: 8px; }
 </style>
