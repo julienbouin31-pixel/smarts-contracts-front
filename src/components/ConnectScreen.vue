@@ -1,8 +1,8 @@
 <template>
   <div class="connect-screen">
     <div class="connect-box">
-      <div class="logo">PMD</div>
-      <h1>Pari Mutuel</h1>
+      <div class="logo">MB</div>
+      <h1>MutuBet</h1>
       <p>Plateforme de paris décentralisée</p>
       <button class="btn-primary" @click="$emit('connect')">
         🦊 Connecter MetaMask

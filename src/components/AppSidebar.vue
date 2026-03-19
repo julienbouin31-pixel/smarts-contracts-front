@@ -1,6 +1,6 @@
 <template>
   <aside class="sidebar">
-    <div class="logo">PMD</div>
+    <div class="logo">MutuBet</div>
 
     <nav>
       <button :class="['nav-item', { active: page === 'matchs' }]" @click="$emit('update:page', 'matchs')">
@@ -49,12 +49,12 @@ defineEmits(['update:page', 'refresh']);
 }
 
 .logo {
-  font-size: 0.7rem;
-  letter-spacing: 0.2em;
-  font-weight: 700;
+  font-size: 1.1rem;
+  font-weight: 800;
   color: #2563eb;
   margin-bottom: 28px;
   padding-left: 6px;
+  letter-spacing: -0.03em;
 }
 
 nav {

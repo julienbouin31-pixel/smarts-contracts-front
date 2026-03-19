@@ -25,8 +25,41 @@
         </select>
         <input v-model="newMatchDomicile" placeholder="Équipe domicile" class="inp-wide" />
         <input v-model="newMatchExterieur" placeholder="Équipe extérieur" class="inp-wide" />
+        <input type="datetime-local" v-model="newMatchDate" class="inp-wide" />
         <button class="btn" @click="creerMatch" :disabled="txPending">Créer</button>
       </div>
+    </div>
+
+    <!-- Importer depuis l'API -->
+    <div class="card">
+      <div class="section-title">Importer un vrai match</div>
+      <div class="row" style="margin-bottom: 12px;">
+        <button
+          v-for="cat in ['Football', 'Basketball']"
+          :key="cat"
+          :class="['btn-cat', { active: apiCategorie === cat }]"
+          @click="charger(cat)"
+          :disabled="apiLoading"
+        >
+          {{ cat === 'Football' ? '⚽' : '🏀' }} {{ cat }}
+        </button>
+        <span v-if="apiLoading" class="loading-txt">Chargement…</span>
+        <span v-if="apiError" class="error-txt">{{ apiError }}</span>
+      </div>
+
+      <div v-if="matchesApi.length > 0" class="api-list">
+        <div
+          v-for="m in matchesApi"
+          :key="m.domicile + m.exterieur"
+          class="api-item"
+          @click="importer(m)"
+        >
+          <div class="api-teams">{{ m.domicile }} <span>vs</span> {{ m.exterieur }}</div>
+          <div class="api-date">{{ m.date }} {{ m.heure }}</div>
+        </div>
+      </div>
+      <div v-else-if="!apiLoading && apiCategorie" class="empty">Aucun match disponible.</div>
+      <div v-else-if="!apiCategorie" class="empty">Choisissez un sport pour voir les prochains matchs.</div>
     </div>
 
     <!-- Clore un match -->
@@ -50,17 +83,36 @@
 </template>
 
 <script setup>
-import { computed } from 'vue';
+import { ref, computed } from 'vue';
 import { useContract } from '../composables/useContract.js';
+import { useMatchesApi } from '../composables/useMatchesApi.js';
 
 const {
-  matchs, newMatchDomicile, newMatchExterieur, newMatchCategorie, cloreMatchId, cloreVainqueur,
+  matchs, newMatchDomicile, newMatchExterieur, newMatchCategorie, newMatchDate, cloreMatchId, cloreVainqueur,
   matchsOuverts, txPending,
   creerMatch, cloreMatch,
 } = useContract();
 
-const matchsClos        = computed(() => matchs.value.filter(m => m.estClos));
-const totalCommissions  = computed(() => matchsClos.value.reduce((s, m) => s + (m.totalMiseA + m.totalMiseB) * 0.1, 0));
+const { matchesApi, apiLoading, apiError, fetchMatchesApi } = useMatchesApi();
+
+const matchsClos       = computed(() => matchs.value.filter(m => m.estClos));
+const totalCommissions = computed(() => matchsClos.value.reduce((s, m) => s + (m.totalMiseA + m.totalMiseB) * 0.1, 0));
+
+const apiCategorie = ref('');
+
+const charger = (cat) => {
+  apiCategorie.value = cat;
+  fetchMatchesApi(cat);
+};
+
+const importer = (m) => {
+  newMatchDomicile.value  = m.domicile;
+  newMatchExterieur.value = m.exterieur;
+  newMatchCategorie.value = m.categorie;
+  newMatchDate.value      = m.dateISO || '';
+  // scroll vers le formulaire
+  document.querySelector('.card')?.scrollIntoView({ behavior: 'smooth' });
+};
 </script>
 
 <style scoped>
@@ -112,6 +164,7 @@ h2 { font-size: 1.2rem; font-weight: 700; color: #111; }
 }
 
 .inp-wide { flex: 1; min-width: 140px; }
+input[type="datetime-local"].inp-wide { min-width: 200px; }
 
 .btn {
   background: #eff6ff;
@@ -132,6 +185,54 @@ h2 { font-size: 1.2rem; font-weight: 700; color: #111; }
 .btn-danger:hover:not(:disabled) { background: #fee2e2; }
 
 .empty { color: #999; font-size: 0.88rem; }
+
+.btn-cat {
+  background: #f5f6f8;
+  border: 1px solid #e2e4e8;
+  border-radius: 99px;
+  padding: 5px 14px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  color: #555;
+}
+
+.btn-cat:hover:not(:disabled) { background: #e9eaec; }
+.btn-cat.active { background: #111; color: #fff; border-color: #111; }
+.btn-cat:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.loading-txt { font-size: 0.85rem; color: #888; }
+.error-txt   { font-size: 0.85rem; color: #dc2626; }
+
+.api-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.api-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  background: #f5f6f8;
+  border: 1px solid #e2e4e8;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.api-item:hover { background: #eff6ff; border-color: #bfdbfe; }
+
+.api-teams {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #111;
+}
+
+.api-teams span { font-weight: 400; color: #aaa; margin: 0 6px; }
+
+.api-date { font-size: 0.75rem; color: #888; white-space: nowrap; }
 
 .card-commissions {
   border-color: #bfdbfe;

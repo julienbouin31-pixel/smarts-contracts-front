@@ -2,7 +2,7 @@
   <div class="card">
     <div class="card-head">
       <div class="card-title-group">
-        <span class="cat-badge">{{ catIcon }} {{ match.categorie }}</span>
+        <span class="cat-badge">{{ catIcon }} {{ match.categorie }}<template v-if="match.dateMatch"> · {{ match.dateMatch }}</template></span>
         <span class="card-title">{{ match.equipeDomicile }} vs {{ match.equipeExterieur }}</span>
       </div>
       <span :class="['pill', match.estClos ? 'pill-closed' : 'pill-open']">
@@ -32,10 +32,18 @@
     </div>
 
     <div v-if="mise > 0" class="already-bet">
-      Misé <strong>{{ mise.toFixed(4) }} ETH</strong> sur <strong>{{ userChoix === 1 ? match.equipeDomicile : match.equipeExterieur }}</strong>
+      <span>Misé <strong>{{ mise.toFixed(4) }} ETH</strong> sur <strong>{{ userChoix === 1 ? match.equipeDomicile : match.equipeExterieur }}</strong></span>
+      <button
+        v-if="!match.estClos && !matchCommence && miseActuelle > 0"
+        class="btn-retirer-mise"
+        @click="$emit('retirerMise')"
+        :disabled="txPending"
+      >
+        Retirer (-5%)
+      </button>
     </div>
 
-    <div v-else-if="!match.estClos" class="bet-row">
+    <div v-else-if="!match.estClos && !matchCommence" class="bet-row">
       <select v-model="localChoix" class="sel">
         <option :value="1">{{ match.equipeDomicile }}</option>
         <option :value="2">{{ match.equipeExterieur }}</option>
@@ -44,6 +52,9 @@
       <button class="btn-bet" @click="$emit('parier', localChoix, localMontant)" :disabled="txPending">
         {{ txPending ? '…' : 'Parier' }}
       </button>
+    </div>
+    <div v-else-if="!match.estClos && matchCommence" class="started">
+      Paris fermés — match commencé
     </div>
 
     <template v-if="match.estClos && mise > 0">
@@ -63,7 +74,7 @@
 import { ref, computed } from 'vue';
 
 const props = defineProps(['match', 'mise', 'miseActuelle', 'userChoix', 'txPending', 'initChoix', 'initMontant']);
-defineEmits(['parier', 'retirer']);
+defineEmits(['parier', 'retirer', 'retirerMise']);
 
 const localChoix   = ref(props.initChoix ?? 1);
 const localMontant = ref(props.initMontant ?? 0.01);
@@ -81,6 +92,10 @@ const gain = computed(() => {
   const gagnants = props.match.vainqueur === 1 ? props.match.totalMiseA : props.match.totalMiseB;
   return gagnants > 0 ? ((props.mise * pot) / gagnants) * 0.9 : 0;
 });
+
+const matchCommence = computed(() =>
+  props.match.dateMatchTs > 0 && Date.now() / 1000 > props.match.dateMatchTs
+);
 
 const statusLabel = computed(() => {
   if (!props.match.estClos) return 'Ouvert';
@@ -178,7 +193,27 @@ const statusLabel = computed(() => {
   padding: 8px 12px;
   font-size: 0.85rem;
   color: #15803d;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
+
+.btn-retirer-mise {
+  background: #fff7ed;
+  color: #c2410c;
+  border: 1px solid #fed7aa;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.btn-retirer-mise:hover:not(:disabled) { background: #ffedd5; }
+.btn-retirer-mise:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .bet-row {
   display: flex;
@@ -245,6 +280,7 @@ const statusLabel = computed(() => {
 .btn-gain:hover:not(:disabled) { background: #dcfce7; }
 .btn-gain:disabled { opacity: 0.4; cursor: not-allowed; }
 
+.started   { color: #f59e0b; font-size: 0.85rem; margin-top: 8px; }
 .lost      { color: #dc2626; font-size: 0.85rem; margin-top: 8px; }
 .withdrawn { color: #888; font-size: 0.85rem; margin-top: 8px; }
 </style>

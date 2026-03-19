@@ -6,11 +6,11 @@ const account           = ref(null);
 const ethBalance        = ref('0');
 const matchs            = ref([]);
 const adminAddress      = ref(null);
-const mises             = ref({});   // misesUtilisateurs — remis à 0 après retrait
-const misesInitiales    = ref({});   // misesInitiales — historique permanent, en ETH
+const mises             = ref({});   
+const misesInitiales    = ref({});   
 const choix             = ref({});
 const betChoix          = ref({});
-const betMontant        = ref({});   // montant saisi par l'user, en ETH
+const betMontant        = ref({});  
 const txPending         = ref(false);
 const loading           = ref(false);
 const page              = ref('matchs');
@@ -18,26 +18,28 @@ const page              = ref('matchs');
 const newMatchDomicile  = ref('');
 const newMatchExterieur = ref('');
 const newMatchCategorie = ref('Football');
+const newMatchDate      = ref('');
 const cloreMatchId      = ref(0);
 const cloreVainqueur    = ref(1);
 
-let monContrat = null;
+let monContrat = null;  
 let web3 = null;
 
-const contractAddress = "0xb545Ed8826C89B8e4973a37F0aE926F755711c43";
+const contractAddress = "0x41BCeA842EEE3828FBad8Bf770B074102CF78351";
 const contractABI = [
   { inputs: [], stateMutability: "nonpayable", type: "constructor" },
   { inputs: [], name: "admin", outputs: [{ internalType: "address", name: "", type: "address" }], stateMutability: "view", type: "function" },
   { inputs: [{ internalType: "uint256", name: "", type: "uint256" }, { internalType: "address", name: "", type: "address" }], name: "choixUtilisateurs", outputs: [{ internalType: "uint8", name: "", type: "uint8" }], stateMutability: "view", type: "function" },
   { inputs: [{ internalType: "uint256", name: "_matchId", type: "uint256" }, { internalType: "uint8", name: "_vainqueur", type: "uint8" }], name: "cloreMatch", outputs: [], stateMutability: "nonpayable", type: "function" },
-  { inputs: [{ internalType: "string", name: "_equipeDomicile", type: "string" }, { internalType: "string", name: "_equipeExterieur", type: "string" }, { internalType: "string", name: "_categorie", type: "string" }], name: "creerMatch", outputs: [], stateMutability: "nonpayable", type: "function" },
+  { inputs: [{ internalType: "string", name: "_equipeDomicile", type: "string" }, { internalType: "string", name: "_equipeExterieur", type: "string" }, { internalType: "string", name: "_categorie", type: "string" }, { internalType: "uint256", name: "_dateMatch", type: "uint256" }], name: "creerMatch", outputs: [], stateMutability: "nonpayable", type: "function" },
   { inputs: [], name: "getBalance", outputs: [{ internalType: "uint256", name: "", type: "uint256" }], stateMutability: "view", type: "function" },
-  { inputs: [], name: "getMatchs", outputs: [{ components: [{ internalType: "string", name: "equipeDomicile", type: "string" }, { internalType: "string", name: "equipeExterieur", type: "string" }, { internalType: "string", name: "categorie", type: "string" }, { internalType: "uint256", name: "totalMiseA", type: "uint256" }, { internalType: "uint256", name: "totalMiseB", type: "uint256" }, { internalType: "bool", name: "estClos", type: "bool" }, { internalType: "uint8", name: "vainqueur", type: "uint8" }], internalType: "struct PariMutuel.Match[]", name: "", type: "tuple[]" }], stateMutability: "view", type: "function" },
-  { inputs: [{ internalType: "uint256", name: "", type: "uint256" }], name: "matchs", outputs: [{ internalType: "string", name: "equipeDomicile", type: "string" }, { internalType: "string", name: "equipeExterieur", type: "string" }, { internalType: "string", name: "categorie", type: "string" }, { internalType: "uint256", name: "totalMiseA", type: "uint256" }, { internalType: "uint256", name: "totalMiseB", type: "uint256" }, { internalType: "bool", name: "estClos", type: "bool" }, { internalType: "uint8", name: "vainqueur", type: "uint8" }], stateMutability: "view", type: "function" },
+  { inputs: [], name: "getMatchs", outputs: [{ components: [{ internalType: "string", name: "equipeDomicile", type: "string" }, { internalType: "string", name: "equipeExterieur", type: "string" }, { internalType: "string", name: "categorie", type: "string" }, { internalType: "uint256", name: "dateMatch", type: "uint256" }, { internalType: "uint256", name: "totalMiseA", type: "uint256" }, { internalType: "uint256", name: "totalMiseB", type: "uint256" }, { internalType: "bool", name: "estClos", type: "bool" }, { internalType: "uint8", name: "vainqueur", type: "uint8" }], internalType: "struct PariMutuel.Match[]", name: "", type: "tuple[]" }], stateMutability: "view", type: "function" },
+  { inputs: [{ internalType: "uint256", name: "", type: "uint256" }], name: "matchs", outputs: [{ internalType: "string", name: "equipeDomicile", type: "string" }, { internalType: "string", name: "equipeExterieur", type: "string" }, { internalType: "string", name: "categorie", type: "string" }, { internalType: "uint256", name: "dateMatch", type: "uint256" }, { internalType: "uint256", name: "totalMiseA", type: "uint256" }, { internalType: "uint256", name: "totalMiseB", type: "uint256" }, { internalType: "bool", name: "estClos", type: "bool" }, { internalType: "uint8", name: "vainqueur", type: "uint8" }], stateMutability: "view", type: "function" },
   { inputs: [{ internalType: "uint256", name: "", type: "uint256" }, { internalType: "address", name: "", type: "address" }], name: "misesInitiales", outputs: [{ internalType: "uint256", name: "", type: "uint256" }], stateMutability: "view", type: "function" },
   { inputs: [{ internalType: "uint256", name: "", type: "uint256" }, { internalType: "address", name: "", type: "address" }], name: "misesUtilisateurs", outputs: [{ internalType: "uint256", name: "", type: "uint256" }], stateMutability: "view", type: "function" },
   { inputs: [{ internalType: "uint256", name: "_matchId", type: "uint256" }, { internalType: "uint8", name: "_choix", type: "uint8" }], name: "parier", outputs: [], stateMutability: "payable", type: "function" },
   { inputs: [{ internalType: "uint256", name: "_matchId", type: "uint256" }], name: "retirerGains", outputs: [], stateMutability: "nonpayable", type: "function" },
+  { inputs: [{ internalType: "uint256", name: "_matchId", type: "uint256" }], name: "retirerMise", outputs: [], stateMutability: "nonpayable", type: "function" },
 ];
 
 // Computed
@@ -91,6 +93,10 @@ const fetchAll = async () => {
       equipeDomicile: m.equipeDomicile,
       equipeExterieur: m.equipeExterieur,
       categorie: m.categorie,
+      dateMatch: m.dateMatch && Number(m.dateMatch) > 0
+        ? new Date(Number(m.dateMatch) * 1000).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })
+        : '',
+      dateMatchTs: Number(m.dateMatch) || 0,
       totalMiseA: toEth(m.totalMiseA),
       totalMiseB: toEth(m.totalMiseB),
       estClos: m.estClos,
@@ -136,14 +142,25 @@ const retirerGains = async (matchId) => {
   txPending.value = false;
 };
 
+const retirerMise = async (matchId) => {
+  txPending.value = true;
+  try {
+    await monContrat.methods.retirerMise(matchId).send({ from: account.value });
+    await fetchAll();
+  } catch (e) { alert("Erreur : " + (e.message || e)); }
+  txPending.value = false;
+};
+
 // Actions admin
 const creerMatch = async () => {
   if (!newMatchDomicile.value.trim() || !newMatchExterieur.value.trim()) return alert("Remplissez les deux équipes");
   txPending.value = true;
   try {
-    await monContrat.methods.creerMatch(newMatchDomicile.value.trim(), newMatchExterieur.value.trim(), newMatchCategorie.value).send({ from: account.value });
+    const ts = newMatchDate.value ? Math.floor(new Date(newMatchDate.value).getTime() / 1000) : 0;
+    await monContrat.methods.creerMatch(newMatchDomicile.value.trim(), newMatchExterieur.value.trim(), newMatchCategorie.value, ts).send({ from: account.value });
     newMatchDomicile.value = '';
     newMatchExterieur.value = '';
+    newMatchDate.value = '';
     await fetchAll();
   } catch (e) { alert("Erreur : " + (e.message || e)); }
   txPending.value = false;
@@ -162,8 +179,8 @@ export function useContract() {
   return {
     account, ethBalance, matchs, mises, misesInitiales, choix, betChoix, betMontant,
     txPending, loading, page,
-    newMatchDomicile, newMatchExterieur, newMatchCategorie, cloreMatchId, cloreVainqueur,
+    newMatchDomicile, newMatchExterieur, newMatchCategorie, newMatchDate, cloreMatchId, cloreVainqueur,
     isAdmin, shortAddr, matchsOuverts, mesParis, pctA,
-    initWallet, connectWallet, fetchAll, parier, retirerGains, creerMatch, cloreMatch,
+    initWallet, connectWallet, fetchAll, parier, retirerGains, retirerMise, creerMatch, cloreMatch,
   };
 }

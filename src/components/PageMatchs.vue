@@ -31,6 +31,7 @@
       :initMontant="betMontant[m._idx]"
       @parier="(c, mt) => parier(m._idx, c, mt)"
       @retirer="retirerGains(m._idx)"
+      @retirerMise="retirerMise(m._idx)"
     />
   </div>
 </template>
@@ -40,7 +41,7 @@ import { ref, computed } from 'vue';
 import { useContract } from '../composables/useContract.js';
 import MatchCard from './MatchCard.vue';
 
-const { matchs, mises, misesInitiales, choix, betChoix, betMontant, txPending, retirerGains } = useContract();
+const { matchs, mises, misesInitiales, choix, betChoix, betMontant, txPending, retirerGains, retirerMise } = useContract();
 
 const filtreCategorie = ref('Tous');
 
