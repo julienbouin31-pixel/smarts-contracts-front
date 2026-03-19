@@ -48,7 +48,7 @@ onMounted(() => {
 
 body {
   font-family: system-ui, -apple-system, sans-serif;
-  background: #f5f6f8;
+  background: #f4f6f9;
   color: #111;
 }
 
@@ -59,8 +59,8 @@ body {
 
 .main {
   flex: 1;
-  padding: 32px 36px;
-  max-width: 720px;
+  padding: 36px 40px;
+  max-width: 760px;
   overflow-y: auto;
 }
 </style>

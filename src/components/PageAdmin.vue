@@ -74,6 +74,7 @@
         </select>
         <select v-model="cloreVainqueur" class="sel">
           <option :value="1">{{ matchsOuverts.find(m => m.idx === cloreMatchId)?.equipeDomicile ?? 'Domicile' }} gagne</option>
+          <option :value="0">Match nul</option>
           <option :value="2">{{ matchsOuverts.find(m => m.idx === cloreMatchId)?.equipeExterieur ?? 'Extérieur' }} gagne</option>
         </select>
         <button class="btn btn-danger" @click="cloreMatch" :disabled="txPending">Clore</button>
@@ -123,7 +124,7 @@ const importer = (m) => {
   margin-bottom: 24px;
 }
 
-h2 { font-size: 1.2rem; font-weight: 700; color: #111; }
+h2 { font-size: 1.3rem; font-weight: 700; color: #111; letter-spacing: -0.02em; }
 
 .badge-admin {
   background: #fef2f2;
@@ -136,19 +137,20 @@ h2 { font-size: 1.2rem; font-weight: 700; color: #111; }
 
 .card {
   background: #fff;
-  border: 1px solid #e2e4e8;
-  border-radius: 10px;
-  padding: 18px 20px;
+  border: 1px solid #e8eaed;
+  border-radius: 14px;
+  padding: 20px 22px;
   margin-bottom: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
 }
 
 .section-title {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #999;
-  margin-bottom: 12px;
+  color: #aaa;
+  margin-bottom: 14px;
 }
 
 .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }

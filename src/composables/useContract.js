@@ -25,7 +25,7 @@ const cloreVainqueur    = ref(1);
 let monContrat = null;  
 let web3 = null;
 
-const contractAddress = "0x41BCeA842EEE3828FBad8Bf770B074102CF78351";
+const contractAddress = "0x7ddA58D6b23D79e3C693F55Abe7B7598B7C30EB5";
 const contractABI = [
   { inputs: [], stateMutability: "nonpayable", type: "constructor" },
   { inputs: [], name: "admin", outputs: [{ internalType: "address", name: "", type: "address" }], stateMutability: "view", type: "function" },
@@ -33,8 +33,8 @@ const contractABI = [
   { inputs: [{ internalType: "uint256", name: "_matchId", type: "uint256" }, { internalType: "uint8", name: "_vainqueur", type: "uint8" }], name: "cloreMatch", outputs: [], stateMutability: "nonpayable", type: "function" },
   { inputs: [{ internalType: "string", name: "_equipeDomicile", type: "string" }, { internalType: "string", name: "_equipeExterieur", type: "string" }, { internalType: "string", name: "_categorie", type: "string" }, { internalType: "uint256", name: "_dateMatch", type: "uint256" }], name: "creerMatch", outputs: [], stateMutability: "nonpayable", type: "function" },
   { inputs: [], name: "getBalance", outputs: [{ internalType: "uint256", name: "", type: "uint256" }], stateMutability: "view", type: "function" },
-  { inputs: [], name: "getMatchs", outputs: [{ components: [{ internalType: "string", name: "equipeDomicile", type: "string" }, { internalType: "string", name: "equipeExterieur", type: "string" }, { internalType: "string", name: "categorie", type: "string" }, { internalType: "uint256", name: "dateMatch", type: "uint256" }, { internalType: "uint256", name: "totalMiseA", type: "uint256" }, { internalType: "uint256", name: "totalMiseB", type: "uint256" }, { internalType: "bool", name: "estClos", type: "bool" }, { internalType: "uint8", name: "vainqueur", type: "uint8" }], internalType: "struct PariMutuel.Match[]", name: "", type: "tuple[]" }], stateMutability: "view", type: "function" },
-  { inputs: [{ internalType: "uint256", name: "", type: "uint256" }], name: "matchs", outputs: [{ internalType: "string", name: "equipeDomicile", type: "string" }, { internalType: "string", name: "equipeExterieur", type: "string" }, { internalType: "string", name: "categorie", type: "string" }, { internalType: "uint256", name: "dateMatch", type: "uint256" }, { internalType: "uint256", name: "totalMiseA", type: "uint256" }, { internalType: "uint256", name: "totalMiseB", type: "uint256" }, { internalType: "bool", name: "estClos", type: "bool" }, { internalType: "uint8", name: "vainqueur", type: "uint8" }], stateMutability: "view", type: "function" },
+  { inputs: [], name: "getMatchs", outputs: [{ components: [{ internalType: "string", name: "equipeDomicile", type: "string" }, { internalType: "string", name: "equipeExterieur", type: "string" }, { internalType: "string", name: "categorie", type: "string" }, { internalType: "uint256", name: "dateMatch", type: "uint256" }, { internalType: "uint256", name: "totalMiseA", type: "uint256" }, { internalType: "uint256", name: "totalMiseB", type: "uint256" }, { internalType: "uint256", name: "totalMiseNul", type: "uint256" }, { internalType: "bool", name: "estClos", type: "bool" }, { internalType: "uint8", name: "vainqueur", type: "uint8" }], internalType: "struct PariMutuel.Match[]", name: "", type: "tuple[]" }], stateMutability: "view", type: "function" },
+  { inputs: [{ internalType: "uint256", name: "", type: "uint256" }], name: "matchs", outputs: [{ internalType: "string", name: "equipeDomicile", type: "string" }, { internalType: "string", name: "equipeExterieur", type: "string" }, { internalType: "string", name: "categorie", type: "string" }, { internalType: "uint256", name: "dateMatch", type: "uint256" }, { internalType: "uint256", name: "totalMiseA", type: "uint256" }, { internalType: "uint256", name: "totalMiseB", type: "uint256" }, { internalType: "uint256", name: "totalMiseNul", type: "uint256" }, { internalType: "bool", name: "estClos", type: "bool" }, { internalType: "uint8", name: "vainqueur", type: "uint8" }], stateMutability: "view", type: "function" },
   { inputs: [{ internalType: "uint256", name: "", type: "uint256" }, { internalType: "address", name: "", type: "address" }], name: "misesInitiales", outputs: [{ internalType: "uint256", name: "", type: "uint256" }], stateMutability: "view", type: "function" },
   { inputs: [{ internalType: "uint256", name: "", type: "uint256" }, { internalType: "address", name: "", type: "address" }], name: "misesUtilisateurs", outputs: [{ internalType: "uint256", name: "", type: "uint256" }], stateMutability: "view", type: "function" },
   { inputs: [{ internalType: "uint256", name: "_matchId", type: "uint256" }, { internalType: "uint8", name: "_choix", type: "uint8" }], name: "parier", outputs: [], stateMutability: "payable", type: "function" },
@@ -99,6 +99,7 @@ const fetchAll = async () => {
       dateMatchTs: Number(m.dateMatch) || 0,
       totalMiseA: toEth(m.totalMiseA),
       totalMiseB: toEth(m.totalMiseB),
+      totalMiseNul: toEth(m.totalMiseNul),
       estClos: m.estClos,
       vainqueur: Number(m.vainqueur),
     }));
